@@ -1,15 +1,53 @@
-# Weather Data Pipeline
+# Data Engineering Projects
+
+Two small data pipelines built with Python and SQL Server. Both share the same connection code in `config/database.py`.
+
+## Projects
+
+1. [Weather Data Pipeline](#1-weather-data-pipeline): pulls weather from an API into SQL Server and writes a report.
+2. [CSV Cleaner and Loader](#2-csv-cleaner-and-loader): validates a messy CSV, loads good rows into SQL Server, and saves bad rows with the reason.
+
+## Project structure
+
+```
+config/database.py             connection to SQL Server
+utils/csv_validate.py          validate_row() for the CSV cleaner
+projects/weather_report.py     weather pipeline
+projects/csv_cleaner_loader.py CSV cleaner and loader
+data/messy.csv                 input file for the CSV cleaner
+data/rejects.csv               rejected rows (created when you run it)
+output/weather_report.txt      weather report
+```
+
+## Setup (both projects)
+
+1. Install the packages: `requests` and `pyodbc`.
+2. Set an environment variable named `SQL_SERVER` to your own SQL Server name. If it is not set, the script uses a placeholder and cannot connect.
+
+   In PowerShell (current window only):
+
+   ```
+   $env:SQL_SERVER = "YOUR_COMPUTER\SQLEXPRESS"
+   ```
+
+   In PyCharm: Run → Edit Configurations → Environment variables → `SQL_SERVER=YOUR_COMPUTER\SQLEXPRESS`
+
+3. Make sure the database `python_project` exists in SQL Server.
+
+---
+
+## 1. Weather Data Pipeline
 
 A Python pipeline that pulls the current weather for Quezon City from the Open-Meteo API, saves it to a SQL Server table, and writes a report.
 
-## How it works
+### How it works
 
 1. **Extract:** call the Open-Meteo API with `requests` and get the response as JSON.
 2. **Transform:** pick `timezone`, `time`, and `temperature_2m` out of the nested JSON.
 3. **Load:** check if the reading already exists, then `INSERT` it into SQL Server only if it is new.
 4. **Report:** `SELECT` all readings and write them to `output/weather_report.txt`.
 
-## Tools used
+### Tools used
 
 - Python
 - requests
@@ -17,10 +55,9 @@ A Python pipeline that pulls the current weather for Quezon City from the Open-M
 - SQL Server (SSMS)
 - Open-Meteo API
 
-## How to run it
+### How to run it
 
-1. Install the packages: `requests` and `pyodbc`.
-2. Create the table in SSMS:
+1. Create the table in SSMS:
 
 ```sql
 CREATE TABLE weather_reading (
@@ -30,10 +67,10 @@ CREATE TABLE weather_reading (
 )
 ```
 
-3. Open `config/database.py` and change the server name to your own SQL Server name.
-4. Run the weather file (`weather_report.py`). Run it again later to add new readings.
+2. Run `projects/weather_report.py`.
+3. Run it again later to add new readings.
 
-## Sample output
+### Sample output
 
 ```
 Weather Report
@@ -43,7 +80,7 @@ Asia/Manila 2026-10-29T16:45 31.50
 Asia/Manila 2026-10-29T17:30 30.60
 ```
 
-## What I learned
+### What I learned
 
 - How to avoid duplicate rows by checking with `COUNT` before inserting
 - How to read nested JSON responses
@@ -51,13 +88,13 @@ Asia/Manila 2026-10-29T17:30 30.60
 - Using `commit()` to save an `INSERT`
 - Handling errors with `try/except`
 
+---
 
-
-# CSV Cleaner and Loader
+## 2. CSV Cleaner and Loader
 
 A Python script that reads a messy CSV file, checks every row, loads the good rows into SQL Server, and saves the bad rows to a rejects file with the reason.
 
-## How it works
+### How it works
 
 1. **Read:** open `data/messy.csv` and read each row with `csv.DictReader`.
 2. **Validate:** check each row with `validate_row()` (in `utils/csv_validate.py`). It returns a reason when a row is bad, or `None` when it is good.
@@ -66,7 +103,7 @@ A Python script that reads a messy CSV file, checks every row, loads the good ro
 5. **Reject:** write each bad row and its reason to `data/rejects.csv`.
 6. **Summary:** print how many rows were loaded, rejected, and already in the database.
 
-## Validation rules
+### Validation rules
 
 | Field | Rule | Reason returned |
 |---|---|---|
@@ -75,27 +112,16 @@ A Python script that reads a messy CSV file, checks every row, loads the good ro
 | age | not empty, a number, not negative | Age is missing / Age is not a number / Age is negative |
 | email | not empty, exactly one `@`, text before the `@`, a dot after the `@` with text after it | Email is missing / Email has no @ / Email domain is invalid |
 
-## Project structure
-
-```
-config/database.py        connection to SQL Server
-utils/csv_validate.py     validate_row()
-projects/csv_cleaner.py   main script
-data/messy.csv            input file
-data/rejects.csv          rejected rows (created when you run it)
-```
-
-## Tools used
+### Tools used
 
 - Python
 - csv module
 - pyodbc
 - SQL Server (SSMS)
 
-## How to run it
+### How to run it
 
-1. Install `pyodbc`.
-2. Create the table in SSMS:
+1. Create the table in SSMS:
 
 ```sql
 CREATE TABLE csv_data (
@@ -106,13 +132,12 @@ CREATE TABLE csv_data (
 )
 ```
 
-3. Open `config/database.py` and change the server name to your own SQL Server name.
-4. Put `messy.csv` in the `data` folder.
-5. Run `csv_cleaner.py`.
+2. Put `messy.csv` in the `data` folder.
+3. Run `projects/csv_cleaner_loader.py`.
 
 You can run it again. Rows already in the table are not inserted twice.
 
-## Sample output
+### Sample output
 
 First run:
 
@@ -136,7 +161,7 @@ Rejected 5 rows
 Already 5 rows
 ```
 
-## What I learned
+### What I learned
 
 - How to read a CSV file as dictionaries with `csv.DictReader`
 - How `writerow()` writes one row to a CSV file, and that it takes one list of values

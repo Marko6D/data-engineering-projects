@@ -1,10 +1,13 @@
+import os
 import pyodbc
 
+
 def get_connection():
+    server = os.environ.get('SQL_SERVER', 'YOUR_SERVER_NAME\\SQLEXPRESS')
     try:
         conn = pyodbc.connect(
             'Driver={SQL Server};'
-            'Server=YOUR_SERVER_NAME\\SQLEXPRESS;'
+            f'Server={server};'
             'Database=python_project;'
             'Trusted_Connection=yes;'
         )
