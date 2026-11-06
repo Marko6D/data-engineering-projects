@@ -1,0 +1,6 @@
+id,name,age,email,reason
+3,Charlie,abc,charlie@email.com,Age is not a number
+4,Diana,30,,Email is missing
+6,,41,frank@email.com,Name is missing
+7,Grace,-5,grace@email.com,Age is negative
+8,Henry,52,henry@email,Email domain is invalid
